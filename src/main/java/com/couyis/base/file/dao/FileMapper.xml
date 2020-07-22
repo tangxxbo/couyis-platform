@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.base.file.dao.FileMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.base.file.pojo.File">
+		<!-- 查询与实体类对应关系 -->
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="GROUP_" jdbcType="VARCHAR" property="group" />
+		<result column="FILE_NAME" jdbcType="VARCHAR" property="fileName" />
+		<result column="PATH" jdbcType="VARCHAR" property="path" />
+		<result column="CREATE_USER" jdbcType="VARCHAR" property="createUser" />
+		<result column="CREATE_TIME" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="DOWNLOAD" jdbcType="INTEGER" property="download" />
+		<result column="SIZE_" jdbcType="INTEGER" property="size" />
+	</resultMap>
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		ID,GROUP_,FILE_NAME,PATH,CREATE_USER,CREATE_TIME,DOWNLOAD,SIZE_
+	</sql>
+	<sql id="Page_Execute"><!-- 分页查询 -->
+		LIMIT ${offset},${pageSize}
+	</sql>
+	<sql id="Page_Execute_Head"><!-- ORACLE 分页查询 -->
+		<![CDATA[ SELECT * FROM (SELECT A.*, ROWNUM RN FROM ( ]]>
+	</sql>
+	
+	<sql id="Page_Execute_Tail"><!-- ORACLE 分页查询 -->
+		<![CDATA[ ) A WHERE ROWNUM <= ${pageSize}+${offset} )WHERE RN > ${offset}]]>
+	</sql>
+	<sql id="Page_Order_By"><!-- 排序字段 -->
+		<if test="orderField != null and orderDirection != null">
+			ORDER BY ${orderField} ${orderDirection}
+		</if>
+	</sql>
+
+	<!-- 查询记录数 -->
+	<select id="findCount" parameterType="com.couyis.base.file.bean.FileBean"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM BASE_FILE
+		WHERE 1=1
+		<if test="fileName != null">
+			AND FILE_NAME like '%${fileName}%'
+		</if>
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="findPage" parameterType="com.couyis.base.file.bean.FileBean"
+		resultMap="BaseResultMap">
+		<!-- ORACLE <include refid="Page_Execute_Head" />  -->
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_FILE
+		WHERE 1=1
+		<if test="fileName != null">
+			AND FILE_NAME like '%${fileName}%'
+		</if>
+		<include refid="Page_Order_By" />
+		<include refid="Page_Execute" />
+		<!-- ORACLE <include refid="Page_Execute_Tail" /> -->
+	</select>
+
+	<!-- 查询所有 -->
+	<select id="findAll" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_FILE
+	</select>
+
+	<!-- 获取单条数据 -->
+	<select id="findById" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_FILE
+		WHERE ID =
+		#{id,jdbcType=VARCHAR}
+	</select>
+	<!-- 删除数据 -->
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		BASE_FILE
+		WHERE
+		ID = #{id,jdbcType=VARCHAR}
+	</delete>
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.base.file.pojo.File">
+		INSERT INTO
+		BASE_FILE
+		(ID,GROUP_,
+		CREATE_TIME, CREATE_USER,
+		DOWNLOAD,
+		FILE_NAME,PATH,SIZE_)
+		VALUES
+		(#{id,jdbcType=VARCHAR},
+		#{group,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP},
+		#{createUser,jdbcType=VARCHAR},
+		#{download,jdbcType=INTEGER},
+		#{fileName,jdbcType=VARCHAR},
+		#{path,jdbcType=VARCHAR},
+		#{size,jdbcType=INTEGER})
+	</insert>
+
+	<!-- 更新数据 -->
+	<update id="update" parameterType="com.couyis.base.file.pojo.File">
+		UPDATE BASE_FILE
+		<set>
+			<if test="group != null">
+				GROUP_ = #{group,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				CREATE_TIME = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				CREATE_USER = #{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="download != null">
+				DOWNLOAD = #{download,jdbcType=INTEGER},
+			</if>
+			<if test="path != null">
+				PATH = #{path,jdbcType=VARCHAR},
+			</if>
+			<if test="fileName != null">
+				FILE_NAME = #{fileName,jdbcType=VARCHAR},
+			</if>
+			<if test="size != null"> 
+				SIZE_ =#{size,jdbcType=INTEGER},
+			</if>
+		</set>
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

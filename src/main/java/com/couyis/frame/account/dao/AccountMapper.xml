@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.frame.account.dao.AccountMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.frame.account.pojo.Account">
+		<!-- 查询与实体类对应关系 -->
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="ACCOUNT" jdbcType="VARCHAR" property="account" />
+		<result column="CATEGORY" jdbcType="VARCHAR" property="category" />
+		<result column="PASSWORD" jdbcType="VARCHAR" property="password" />
+	</resultMap>
+
+	<resultMap id="MenuResultMap" type="com.couyis.frame.account.bean.AccountMenuBean">
+		<!-- 查询与实体类对应关系 -->
+		<id column="MENU_ID" jdbcType="VARCHAR" property="menuId" />
+		<result column="VALUE" jdbcType="VARCHAR" property="value" />
+		<result column="MENU_NAME" jdbcType="VARCHAR" property="menuName" />
+		<result column="PARENTID" jdbcType="VARCHAR" property="parentId" />
+	</resultMap>
+	
+	<resultMap id="FeatureResultMap" type="com.couyis.frame.account.bean.ItemBean">
+		<!-- 查询与实体类对应关系 -->
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="NAME" jdbcType="VARCHAR" property="name" />
+		<result column="FILE_ID" jdbcType="VARCHAR" property="fileId" />
+		<result column="ACTIVITY" jdbcType="VARCHAR" property="activity" />
+	</resultMap>
+
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		ID,ACCOUNT,CATEGORY,PASSWORD
+	</sql>
+	<sql id="Page_Execute"><!-- 分页查询 -->
+		LIMIT ${offset},${pageSize}
+	</sql>
+	<sql id="Page_Execute_Head"><!-- 分页查询 -->
+		<![CDATA[ SELECT * FROM (SELECT A.*, ROWNUM RN FROM ( ]]>
+	</sql>
+	
+	<sql id="Page_Execute_Tail"><!-- 分页查询 -->
+		<![CDATA[ ) A WHERE ROWNUM <= ${pageSize}+${offset} )WHERE RN > ${offset}]]>
+	</sql>
+	
+	
+	<sql id="Page_Order_By"><!-- 排序字段 -->
+		<if test="orderField != null and orderDirection != null">
+			ORDER BY ${orderField} ${orderDirection}
+		</if>
+	</sql>
+
+	<!-- 查询记录数 -->
+	<select id="findCount" parameterType="com.couyis.frame.account.bean.AccountBean"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM SECURITY_ACCOUNT
+		WHERE 1=1
+		<if test="account != null">
+			AND ACCOUNT LIKE '%${account}%'
+		</if>
+		<if test="category != null">
+			AND CATEGORY = ${category}
+		</if>
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="findPage" parameterType="com.couyis.frame.account.bean.AccountBean"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_ACCOUNT
+		WHERE 1=1
+		<if test="account != null">
+			AND ACCOUNT LIKE '%${account}%'
+		</if>
+		<if test="category != null">
+			AND CATEGORY LIKE ${category}
+		</if>
+		<include refid="Page_Order_By" />
+		<include refid="Page_Execute" />
+	</select>
+
+	<!-- 根据帐号获取单条数据 -->
+	<select id="findByAccount" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_ACCOUNT
+		WHERE ACCOUNT = #{account,jdbcType=VARCHAR}
+	</select>
+
+	<!-- 获取单条数据 -->
+	<select id="findById" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_ACCOUNT
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</select>
+	<!-- 删除数据 -->
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		SECURITY_ACCOUNT
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.frame.account.pojo.Account">
+		INSERT INTO SECURITY_ACCOUNT
+		(ID,
+		ACCOUNT, CATEGORY,PASSWORD)
+		VALUES (#{id,jdbcType=VARCHAR},
+		#{account,jdbcType=VARCHAR},
+		#{category,jdbcType=VARCHAR},
+		#{password,jdbcType=VARCHAR})
+	</insert>
+
+	<!-- 更新数据 -->
+	<update id="update" parameterType="com.couyis.frame.account.pojo.Account">
+		UPDATE SECURITY_ACCOUNT
+		<set>
+			<if test="account != null">
+				ACCOUNT = #{account,jdbcType=VARCHAR},
+			</if>
+			<if test="category != null">
+				CATEGORY = #{category,jdbcType=VARCHAR},
+			</if>
+			<if test="password != null">
+				PASSWORD = #{password,jdbcType=VARCHAR},
+			</if>
+		</set>
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+
+	<!-- 获取访问资源权限 -->
+	<select id="findResourceAuthority" parameterType="java.lang.String"
+		resultType="String">
+		SELECT DISTINCT A.VALUE FROM SECURITY_RESOURCE A
+		LEFT JOIN SECURITY_AUTHORITY_RESOURCE C ON A.ID=C.RESOURCE_ID
+		LEFT JOIN SECURITY_ROLE_AUTHORITY D ON C.AUTHORITY_ID=D.AUTHORITY_ID
+		LEFT JOIN SECURITY_ACCOUNT_ROLE E ON E.ROLE_ID=D.ROLE_ID
+		LEFT JOIN SECURITY_ACCOUNT_AUTHORITY F ON F.AUTHORITY_ID=C.AUTHORITY_ID
+		LEFT JOIN SECURITY_AUTHORITY G ON C.AUTHORITY_ID=G.ID
+		WHERE (E.ACCOUNT=#{account,jdbcType=VARCHAR} OR
+		F.ACCOUNT=#{account,jdbcType=VARCHAR} OR A.ATTR='PROTECTED')
+	</select>
+	<!-- 获取访问资源权限 -->
+	<select id="findDisplayAuthority" parameterType="java.lang.String"
+		resultType="String">
+		SELECT DISTINCT A.CODE FROM SECURITY_AUTHORITY A 
+		LEFT JOIN SECURITY_ROLE_AUTHORITY B ON A.ID=B.AUTHORITY_ID
+		LEFT JOIN SECURITY_ACCOUNT_ROLE C ON C.ROLE_ID=B.ROLE_ID
+		LEFT JOIN SECURITY_ACCOUNT_AUTHORITY D ON D.AUTHORITY_ID=A.ID
+		WHERE (C.ACCOUNT=#{account,jdbcType=VARCHAR}) OR (D.ACCOUNT=#{account,jdbcType=VARCHAR}) 
+	</select>
+	
+	
+	<!-- 删除数据 -->
+	<delete id="deleteRoleByAccount" parameterType="java.lang.String">
+		DELETE FROM
+		SECURITY_ACCOUNT_ROLE
+		WHERE ACCOUNT =
+		#{account,jdbcType=VARCHAR}
+	</delete>
+
+	<!-- 插入数据 -->
+	<insert id="saveAccountRole" parameterType="java.lang.String">
+		INSERT INTO
+		SECURITY_ACCOUNT_ROLE (ACCOUNT,ROLE_ID)
+		VALUES
+		(#{account,jdbcType=VARCHAR},
+		#{roleId,jdbcType=VARCHAR})
+	</insert>
+	
+	<!-- 获取数据 -->
+	<select id="findRoleByAccount" parameterType="java.lang.String"
+		resultType="String">
+		SELECT ROLE_ID
+		FROM SECURITY_ACCOUNT_ROLE WHERE
+		ACCOUNT =
+		#{account,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 删除数据 -->
+	<delete id="deleteAuthorityByAccount" parameterType="java.lang.String">
+		DELETE FROM
+		SECURITY_ACCOUNT_AUTHORITY
+		WHERE ACCOUNT =
+		#{account,jdbcType=VARCHAR}
+	</delete>
+
+	<!-- 插入数据 -->
+	<insert id="saveAccountAuthority" parameterType="java.lang.String">
+		INSERT INTO
+		SECURITY_ACCOUNT_AUTHORITY (ACCOUNT,AUTHORITY_ID)
+		VALUES
+		(#{account,jdbcType=VARCHAR},
+		#{authorityId,jdbcType=VARCHAR})
+	</insert>
+	
+	<!-- 获取数据 -->
+	<select id="findAuthorityByAccount" parameterType="java.lang.String"
+		resultType="String">
+		SELECT AUTHORITY_ID
+		FROM SECURITY_ACCOUNT_AUTHORITY WHERE
+		ACCOUNT =
+		#{account,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 获取移动端功能列表数据 -->
+	<select id="findFeatureAuthority" parameterType="java.lang.String"
+		resultMap="FeatureResultMap">
+		SELECT DISTINCT A.ID,A.NAME,A.ACTIVITY,A.FILE_ID,A.SORT
+		FROM SECURITY_HAND_FEATURE A
+		LEFT JOIN SECURITY_AUTHORITY_FEATURE B ON A.ID=B.FEATURE_ID
+		LEFT JOIN SECURITY_ROLE_AUTHORITY C ON B.AUTHORITY_ID=C.AUTHORITY_ID
+		LEFT JOIN SECURITY_ACCOUNT_ROLE D ON D.ROLE_ID=C.ROLE_ID
+		LEFT JOIN SECURITY_ACCOUNT_AUTHORITY E ON E.AUTHORITY_ID=C.AUTHORITY_ID
+		WHERE (D.ACCOUNT=#{account,jdbcType=VARCHAR} OR
+		E.ACCOUNT=#{account,jdbcType=VARCHAR}) ORDER BY A.SORT
+	</select>
+	
+</mapper>

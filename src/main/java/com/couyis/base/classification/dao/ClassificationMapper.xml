@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.base.classification.dao.ClassificationMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.base.classification.pojo.Classification">
+		<!-- 查询与实体类对应关系 -->
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="CODE" jdbcType="VARCHAR" property="code" />
+		<result column="NAME" jdbcType="VARCHAR" property="name" />
+		<result column="DESCRIPTION" jdbcType="VARCHAR" property="description" />
+		<result column="CATEGORY" jdbcType="VARCHAR" property="category" />
+		<result column="CREATE_USER" jdbcType="VARCHAR" property="createUser" />
+		<result column="CREATE_TIME" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="UPDATE_USER" jdbcType="VARCHAR" property="updateUser" />
+		<result column="UPDATE_TIME" jdbcType="TIMESTAMP" property="updateTime" />
+		<result column="DELETE_USER" jdbcType="VARCHAR" property="deleteUser" />
+		<result column="DELETE_TIME" jdbcType="TIMESTAMP" property="deleteTime" />
+		<result column="IS_DELETE" jdbcType="INTEGER" property="isDelete" />	
+	</resultMap>
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		ID,CODE ,NAME, DESCRIPTION, CATEGORY,CREATE_USER,CREATE_TIME,
+		UPDATE_USER,UPDATE_TIME,DELETE_USER,DELETE_TIME,IS_DELETE
+	</sql>
+	<sql id="Page_Execute"><!-- 分页查询 -->
+		LIMIT ${offset},${pageSize}
+	</sql>
+	<sql id="Page_Execute_Head"><!-- 分页查询 -->
+		<![CDATA[ SELECT * FROM (SELECT A.*, ROWNUM RN FROM ( ]]>
+	</sql>
+	
+	<sql id="Page_Execute_Tail"><!-- 分页查询 -->
+		<![CDATA[ ) A WHERE ROWNUM <= ${pageSize}+${offset} )WHERE RN > ${offset}]]>
+	</sql>
+	<sql id="Page_Order_By"><!-- 排序字段 -->
+		<if test="orderField != null and orderDirection != null">
+			ORDER BY ${orderField} ${orderDirection}
+		</if>
+	</sql>
+
+	<!-- 查询记录数 -->
+	<select id="findCount" parameterType="com.couyis.base.classification.bean.ClassificationBean"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM BASE_CLASSIFICATION
+		WHERE 1=1
+		<if test="code != null">
+			AND CODE LIKE '%${code}%'
+		</if>
+		<if test="name != null">
+			AND NAME LIKE '%${name}%'
+		</if>
+		<if test="category != null and category.size() > 0">
+			AND CATEGORY IN 
+			<foreach collection="category" item="c" index="index" open="(" close=")" separator=",">
+		      #{c}
+		    </foreach>
+	    </if>
+		 AND IS_DELETE = 0
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="findPage" parameterType="com.couyis.base.classification.bean.ClassificationBean"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_CLASSIFICATION
+		WHERE 1=1
+		<if test="code != null">
+			AND CODE LIKE '%${code}%'
+		</if>
+		<if test="name != null">
+			AND NAME LIKE '%${name}%'
+		</if>
+		<if test="category != null and category.size() > 0">
+			AND CATEGORY IN 
+			<foreach collection="category" item="c" index="index" open="(" close=")" separator=",">
+		      #{c}
+		    </foreach>
+	    </if>
+	     AND IS_DELETE = 0
+		<include refid="Page_Order_By" />
+		<include refid="Page_Execute" />
+	</select>
+
+	<!-- 查询所有 -->
+	<select id="findAll" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_CLASSIFICATION
+	</select>
+
+	<!-- 获取单条数据 -->
+	<select id="findById" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_CLASSIFICATION 
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 获取单条数据 -->
+	<select id="findByCode" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_CLASSIFICATION 
+		WHERE CODE = #{code,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 获取单条数据 -->
+	<select id="findByCategory" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_CLASSIFICATION 
+		WHERE CATEGORY = #{category,jdbcType=VARCHAR}
+	</select>
+
+	<!-- 删除数据 -->
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		BASE_CLASSIFICATION
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.base.classification.pojo.Classification">
+		INSERT INTO BASE_CLASSIFICATION
+		(ID,CODE,NAME, DESCRIPTION,CATEGORY,CREATE_USER,CREATE_TIME,IS_DELETE)
+		VALUES (#{id,jdbcType=VARCHAR},
+		#{code,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{description,jdbcType=VARCHAR},
+		#{category,jdbcType=VARCHAR},
+		#{createUser,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP},0)
+	</insert>
+
+	<!-- 更新数据 -->
+	<update id="update" parameterType="com.couyis.base.classification.pojo.Classification">
+		UPDATE BASE_CLASSIFICATION
+		<set>
+			<if test="code != null">
+				CODE = #{code,jdbcType=VARCHAR},
+			</if>
+			<if test="name != null">
+				NAME = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				DESCRIPTION = #{description,jdbcType=VARCHAR},
+			</if>
+			<if test="category != null">
+				CATEGORY = #{category,jdbcType=VARCHAR},
+			</if>
+			<if test="updateUser != null">
+				UPDATE_USER = #{updateUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="deleteUser != null">
+				DELETE_USER = #{deleteUser,jdbcType=VARCHAR},
+			</if>
+			<if test="deleteTime != null">
+				DELETE_TIME = #{deleteTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="isDelete != null">
+				IS_DELETE = #{isDelete,jdbcType=INTEGER},
+			</if>
+		</set>
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

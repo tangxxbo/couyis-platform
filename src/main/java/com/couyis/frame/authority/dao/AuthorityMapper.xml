@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.frame.authority.dao.AuthorityMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.frame.authority.pojo.Authority">
+		<!-- 查询与实体类对应关系 -->
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="CODE" jdbcType="VARCHAR" property="code" />
+		<result column="NAME" jdbcType="VARCHAR" property="name" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="GROUP_ID" jdbcType="VARCHAR" property="authorityGroupId" />
+		<result column="GROUP_NAME" jdbcType="VARCHAR" property="authorityGroupName" />
+		<result column="SORT" jdbcType="INTEGER" property="sort" />
+		<result column="CREATE_USER" jdbcType="VARCHAR" property="createUser" />
+		<result column="CREATE_TIME" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="UPDATE_USER" jdbcType="VARCHAR" property="updateUser" />
+		<result column="UPDATE_TIME" jdbcType="TIMESTAMP" property="updateTime" />
+	</resultMap>
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		A.ID,A.CODE ,A.NAME, A.REMARK, A.GROUP_ID,B.NAME AS GROUP_NAME, A.SORT
+		,A.CREATE_USER,A.CREATE_TIME,A.UPDATE_USER,A.UPDATE_TIME
+	</sql>
+	<sql id="Page_Execute"><!-- 分页查询 -->
+		LIMIT ${offset},${pageSize}
+	</sql>
+	<sql id="Page_Execute_Head"><!-- 分页查询 -->
+		<![CDATA[ SELECT * FROM (SELECT A.*, ROWNUM RN FROM ( ]]>
+	</sql>
+	
+	<sql id="Page_Execute_Tail"><!-- 分页查询 -->
+		<![CDATA[ ) A WHERE ROWNUM <= ${pageSize}+${offset} )WHERE RN > ${offset}]]>
+	</sql>
+	<sql id="Page_Order_By"><!-- 排序字段 -->
+		<if test="orderField != null and orderDirection != null">
+			ORDER BY ${orderField} ${orderDirection}
+		</if>
+	</sql>
+
+	<!-- 查询记录数 -->
+	<select id="findCount" parameterType="com.couyis.frame.authority.bean.AuthorityBean"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM SECURITY_AUTHORITY A 
+		LEFT JOIN SECURITY_AUTHORITY_GROUP B ON A.GROUP_ID=B.ID
+		WHERE 1=1
+		<if test="code != null">
+			AND A.CODE LIKE '%${code}%'
+		</if>
+		<if test="name != null">
+			AND A.NAME LIKE '%${name}%'
+		</if>
+		<if test="authorityGroupName != null and authorityGroupName !=''">
+			AND B.NAME LIKE '%${authorityGroupName}%'
+		</if>
+		<if test="authgrpId != null and authgrpId !=''">
+			AND B.ID = #{authgrpId,jdbcType=VARCHAR}
+		</if>
+		
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="findPage" parameterType="com.couyis.frame.authority.bean.AuthorityBean"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_AUTHORITY A 
+		LEFT JOIN SECURITY_AUTHORITY_GROUP B ON A.GROUP_ID=B.ID
+		WHERE 1=1
+		<if test="code != null">
+			AND A.CODE LIKE '%${code}%'
+		</if>
+		<if test="name != null">
+			AND A.NAME LIKE '%${name}%'
+		</if>
+		<if test="authorityGroupName != null and authorityGroupName !=''">
+			AND B.NAME LIKE '%${authorityGroupName}%'
+		</if>
+		<if test="authgrpId != null and authgrpId !=''">
+			AND B.ID = #{authgrpId,jdbcType=VARCHAR}
+		</if>
+		<include refid="Page_Order_By" />
+		<include refid="Page_Execute" />
+	</select>
+	
+	<select id="findSuggest" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_AUTHORITY A 
+		LEFT JOIN SECURITY_AUTHORITY_GROUP B ON A.GROUP_ID=B.ID
+		WHERE 1=1 AND A.GROUP_ID=#{authgrpId,jdbcType=VARCHAR}
+		<if test="keyword != null and keyword !=''">
+			AND A.NAME LIKE '%${keyword}%'
+		</if>
+		LIMIT 0,10
+	</select>
+
+	<!-- 查询所有 -->
+	<select id="findAll" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_AUTHORITY A 
+		LEFT JOIN SECURITY_AUTHORITY_GROUP B ON	A.GROUP_ID=B.ID
+	</select>
+
+	<!-- 获取单条数据 -->
+	<select id="findById" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_AUTHORITY A 
+		LEFT JOIN SECURITY_AUTHORITY_GROUP B ON	A.GROUP_ID=B.ID
+		WHERE A.ID = #{id,jdbcType=VARCHAR}
+	</select>
+
+
+	<select id="findByGroupId" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_AUTHORITY A 
+		LEFT JOIN SECURITY_AUTHORITY_GROUP B ON	A.GROUP_ID=B.ID
+		WHERE A.GROUP_ID =
+		#{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="findByRoleId" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_AUTHORITY A
+		LEFT JOIN SECURITY_AUTHORITY_GROUP B ON A.GROUP_ID=B.ID		  
+		LEFT JOIN SECURITY_ROLE_AUTHORITY D ON D.AUTHORITY_ID = A.ID		
+		WHERE D.ROLE_ID =
+		#{roleId,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="findByAccount" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_AUTHORITY A
+		LEFT JOIN SECURITY_AUTHORITY_GROUP B ON A.GROUP_ID=B.ID		  
+		LEFT JOIN SECURITY_ACCOUNT_AUTHORITY D ON D.AUTHORITY_ID = A.ID		
+		WHERE D.ACCOUNT =
+		#{account,jdbcType=VARCHAR}
+	</select>
+
+
+	<!-- 获取单条数据 -->
+	<select id="findResourceByAuthorityId" parameterType="java.lang.String"
+		resultType="String">
+		SELECT RESOURCE_ID
+		FROM SECURITY_AUTHORITY_RESOURCE WHERE
+		AUTHORITY_ID =
+		#{authorityId,jdbcType=VARCHAR}
+	</select>
+
+	<!-- 删除数据 -->
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		SECURITY_AUTHORITY
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+	<!-- 删除数据 -->
+	<delete id="deleteResourceById" parameterType="java.lang.String">
+		DELETE FROM
+		SECURITY_AUTHORITY_RESOURCE
+		WHERE AUTHORITY_ID =
+		#{authorityId,jdbcType=VARCHAR}
+	</delete>
+
+
+	<!-- 插入数据 -->
+	<insert id="saveResource" parameterType="java.lang.String">
+		INSERT INTO
+		SECURITY_AUTHORITY_RESOURCE (AUTHORITY_ID,RESOURCE_ID)
+		VALUES
+		(#{authorityId,jdbcType=VARCHAR},
+		#{resourceId,jdbcType=VARCHAR})
+	</insert>
+
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.frame.authority.pojo.Authority">
+		INSERT INTO SECURITY_AUTHORITY
+		(ID,CODE,
+		NAME, REMARK,
+		GROUP_ID, SORT,CREATE_USER,CREATE_TIME)
+		VALUES (#{id,jdbcType=VARCHAR},
+		#{code,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{remark,jdbcType=VARCHAR},
+		#{authorityGroupId,jdbcType=VARCHAR},
+		#{sort,jdbcType=INTEGER},
+		#{createUser,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP})
+	</insert>
+
+	<!-- 更新数据 -->
+	<update id="update" parameterType="com.couyis.frame.authority.pojo.Authority">
+		UPDATE SECURITY_AUTHORITY
+		<set>
+			<if test="code != null">
+				CODE = #{code,jdbcType=VARCHAR},
+			</if>
+			<if test="name != null">
+				NAME = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="remark != null">
+				REMARK = #{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="authorityGroupId != null">
+				GROUP_ID = #{authorityGroupId,jdbcType=VARCHAR},
+			</if>
+			<if test="sort != null">
+				SORT = #{sort,jdbcType=INTEGER},
+			</if>
+			<if test="updateUser != null">
+				UPDATE_USER = #{updateUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+
+
+	<select id="findFeatureByAuthorityId" parameterType="java.lang.String"
+		resultType="String">
+		SELECT FEATURE_ID
+		FROM SECURITY_AUTHORITY_FEATURE WHERE
+		AUTHORITY_ID =
+		#{authorityId,jdbcType=VARCHAR}
+	</select>
+
+	<!-- 删除数据 -->
+	<delete id="deleteFeatureById" parameterType="java.lang.String">
+		DELETE FROM
+		SECURITY_AUTHORITY_FEATURE
+		WHERE AUTHORITY_ID =
+		#{authorityId,jdbcType=VARCHAR}
+	</delete>
+
+	<!-- 插入数据 -->
+	<insert id="saveFeature" parameterType="java.lang.String">
+		INSERT INTO
+		SECURITY_AUTHORITY_FEATURE (AUTHORITY_ID,FEATURE_ID)
+		VALUES
+		(#{authorityId,jdbcType=VARCHAR},
+		#{featureId,jdbcType=VARCHAR})
+	</insert>
+</mapper>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.frame.schedule.dao.ScheduleMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.frame.schedule.pojo.Schedule">
+		<!-- 查询与实体类对应关系 -->
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="NAME" jdbcType="VARCHAR" property="name" />
+		<result column="CRON" jdbcType="VARCHAR" property="cron" />
+		<result column="CLAZZ" jdbcType="VARCHAR" property="clazz" />
+		<result column="STATUS_" jdbcType="VARCHAR" property="status" />
+		<result column="CREATE_USER" jdbcType="VARCHAR" property="createUser" />
+		<result column="START_USER" jdbcType="VARCHAR" property="startUser" />
+		<result column="STOP_USER" jdbcType="VARCHAR" property="stopUser" />
+		<result column="CREATE_TIME" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="START_TIME" jdbcType="TIMESTAMP" property="startTime" />
+		<result column="STOP_TIME" jdbcType="TIMESTAMP" property="stopTime" />
+	</resultMap>
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		ID,NAME ,CRON, CLAZZ, STATUS_, CREATE_USER, START_USER, STOP_USER,CREATE_TIME,START_TIME,STOP_TIME
+	</sql>
+	<sql id="Page_Execute"><!-- 分页查询 -->
+		LIMIT ${offset},${pageSize}
+	</sql>
+	<sql id="Page_Execute_Head"><!-- 分页查询 -->
+		<![CDATA[ SELECT * FROM (SELECT A.*, ROWNUM RN FROM ( ]]>
+	</sql>
+	
+	<sql id="Page_Execute_Tail"><!-- 分页查询 -->
+		<![CDATA[ ) A WHERE ROWNUM <= ${pageSize}+${offset} )WHERE RN > ${offset}]]>
+	</sql>
+	
+	<sql id="Page_Order_By"><!-- 排序字段 -->
+		<if test="orderField != null and orderDirection != null">
+			ORDER BY ${orderField} ${orderDirection}
+		</if>
+	</sql>
+
+	<!-- 查询记录数 -->
+	<select id="findCount" parameterType="com.couyis.frame.schedule.bean.ScheduleBean"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM SECURITY_SCHEDULE
+		WHERE 1=1
+		<if test="name != null and name !=''">
+			AND NAME LIKE '%${name}%'
+		</if>
+		<if test="clazz != null and clazz !=''">
+			AND CLAZZ LIKE '%${clazz}%'
+		</if>
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="findPage" parameterType="com.couyis.frame.schedule.bean.ScheduleBean"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_SCHEDULE
+		WHERE 1=1
+		<if test="name != null and name !=''">
+			AND NAME LIKE '%${name}%'
+		</if>
+		<if test="clazz != null and clazz !=''">
+			AND CLAZZ LIKE '%${clazz}%'
+		</if>
+		<include refid="Page_Order_By" />
+		<include refid="Page_Execute" />
+	</select>
+
+	<!-- 查询所有 -->
+	<select id="findAll" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_SCHEDULE
+	</select>
+	
+	<!-- 根据状态查询 -->
+	<select id="findByStatus" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_SCHEDULE WHERE STATUS_ = #{status,jdbcType=VARCHAR}
+	</select>
+
+	<!-- 获取单条数据 -->
+	<select id="findById" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_SCHEDULE
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</select>
+
+
+
+	<!-- 删除数据 -->
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		SECURITY_SCHEDULE
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.frame.schedule.pojo.Schedule">
+		INSERT INTO
+		SECURITY_SCHEDULE
+		(ID,NAME,
+		CRON, CLAZZ,
+		STATUS_, CREATE_USER,START_USER,STOP_USER,CREATE_TIME,START_TIME,STOP_TIME)
+		VALUES
+		(#{id,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{cron,jdbcType=VARCHAR},
+		#{clazz,jdbcType=VARCHAR},
+		#{status,jdbcType=VARCHAR},
+		#{createUser,jdbcType=INTEGER},
+		#{startUser,jdbcType=VARCHAR},
+		#{stopUser,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP},
+		#{startTime,jdbcType=TIMESTAMP},
+		#{stopTime,jdbcType=TIMESTAMP})
+	</insert>
+
+	<!-- 更新数据 -->
+	<update id="update" parameterType="com.couyis.frame.schedule.pojo.Schedule">
+		UPDATE SECURITY_SCHEDULE
+		<set>
+			<if test="name != null">
+				NAME = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="cron != null">
+				CRON = #{cron,jdbcType=VARCHAR},
+			</if>
+			<if test="clazz != null">
+				CLAZZ = #{clazz,jdbcType=VARCHAR},
+			</if>
+			<if test="status != null">
+				STATUS_ = #{status,jdbcType=VARCHAR},
+			</if>
+			<if test="createUser != null">
+				CREATE_USER = #{createUser,jdbcType=INTEGER},
+			</if>
+			<if test="startUser != null">
+				START_USER = #{startUser,jdbcType=VARCHAR},
+			</if>
+			<if test="stopUser != null">
+				STOP_USER = #{stopUser,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				CREATE_TIME = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="startTime != null">
+				START_TIME = #{startTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="stopTime != null">
+				STOP_TIME = #{stopTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

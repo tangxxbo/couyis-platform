@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.base.attribute.dao.AttributeValueMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.base.attribute.pojo.AttributeValue">
+		<!-- 查询与实体类对应关系 --> 
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="NAME" jdbcType="VARCHAR" property="name" />
+		<result column="VALUE" jdbcType="VARCHAR" property="value" />
+		<result column="DEFAULT_VALUE" jdbcType="INTEGER" property="defaultValue" />
+		<result column="ATTRIBUTE_ID" jdbcType="VARCHAR" property="attributeId" />
+	</resultMap>
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		ID ,NAME, VALUE, DEFAULT_VALUE,ATTRIBUTE_ID
+	</sql>
+	<!-- 获取单条数据 -->
+	<select id="findByAttributeId" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_ATTRIBUTE_VALUE A 
+		WHERE ATTRIBUTE_ID = #{attributeId,jdbcType=VARCHAR}
+	</select>
+	<!-- 删除数据 -->
+	<delete id="deleteByAttributeId" parameterType="java.lang.String">
+		DELETE FROM
+		BASE_ATTRIBUTE_VALUE
+		WHERE ATTRIBUTE_ID = #{attributeId,jdbcType=VARCHAR}
+	</delete>
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.base.attribute.pojo.AttributeValue">
+		INSERT INTO
+		BASE_ATTRIBUTE_VALUE (ID,
+		NAME, VALUE, DEFAULT_VALUE,ATTRIBUTE_ID)
+		VALUES
+		(#{id,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{value,jdbcType=VARCHAR},
+		#{defaultValue,jdbcType=INTEGER},
+		#{attributeId,jdbcType=VARCHAR})
+	</insert>
+
+	<!-- 更新数据 -->
+	<update id="update" parameterType="com.couyis.base.attribute.pojo.AttributeValue">
+		UPDATE SECURITY_AUTHORITY_GROUP
+		<set>
+			<if test="name != null">
+				NAME = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="value != null">
+				VALUE = #{value,jdbcType=VARCHAR},
+			</if>
+			<if test="defaultValue != null">
+				DEFAULT_VALUE = #{defaultValue,jdbcType=INTEGER},
+			</if>
+			<if test="attributeId != null">
+				ATTRIBUTE_ID = #{attributeId,jdbcType=VARCHAR},
+			</if>
+		</set>
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

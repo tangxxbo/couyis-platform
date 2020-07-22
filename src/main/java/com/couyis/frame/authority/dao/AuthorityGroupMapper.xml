@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.frame.authority.dao.AuthorityGroupMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.frame.authority.pojo.AuthorityGroup">
+		<!-- 查询与实体类对应关系 --> 
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="NAME" jdbcType="VARCHAR" property="name" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="SORT" jdbcType="INTEGER" property="sort" />
+		<result column="CREATE_USER" jdbcType="VARCHAR" property="createUser" />
+		<result column="CREATE_TIME" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="UPDATE_USER" jdbcType="VARCHAR" property="updateUser" />
+		<result column="UPDATE_TIME" jdbcType="TIMESTAMP" property="updateTime" />
+	</resultMap>
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		A.ID, A.NAME, A.REMARK, A.SORT
+		,A.CREATE_USER,A.CREATE_TIME,A.UPDATE_USER,A.UPDATE_TIME
+	</sql>
+	<sql id="Page_Execute"><!-- 分页查询 -->
+		LIMIT ${offset},${pageSize}
+	</sql>
+	<sql id="Page_Execute_Head"><!-- 分页查询 -->
+		<![CDATA[ SELECT * FROM (SELECT A.*, ROWNUM RN FROM ( ]]>
+	</sql>
+	
+	<sql id="Page_Execute_Tail"><!-- 分页查询 -->
+		<![CDATA[ ) A WHERE ROWNUM <= ${pageSize}+${offset} )WHERE RN > ${offset}]]>
+	</sql>
+	
+	<sql id="Page_Order_By"><!-- 排序字段 -->
+		<if test="orderField != null and orderDirection != null">
+			ORDER BY ${orderField} ${orderDirection}
+		</if>
+	</sql>
+
+	<!-- 查询记录数 -->
+	<select id="findCount" parameterType="com.couyis.frame.authority.bean.AuthorityGroupBean"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM SECURITY_AUTHORITY_GROUP A 
+		WHERE 1=1
+		<if test="name != null">
+			AND A.NAME LIKE '%${name}%'
+		</if>
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="findPage" parameterType="com.couyis.frame.authority.bean.AuthorityGroupBean"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_AUTHORITY_GROUP A 
+		WHERE 1=1
+		<if test="name != null">
+			AND A.NAME LIKE '%${name}%'
+		</if>
+		<include refid="Page_Order_By" />
+		<include refid="Page_Execute" />
+	</select>
+
+	<!-- 查询所有 -->
+	<select id="findAll" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_AUTHORITY_GROUP A 
+	</select>
+
+	<!-- 获取单条数据 -->
+	<select id="findById" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_AUTHORITY_GROUP A 
+		WHERE A.ID = #{id,jdbcType=VARCHAR}
+	</select>
+	<!-- 删除数据 -->
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		SECURITY_AUTHORITY_GROUP
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.frame.authority.pojo.AuthorityGroup">
+		INSERT INTO
+		SECURITY_AUTHORITY_GROUP (ID,
+		NAME, REMARK, SORT,CREATE_USER,CREATE_TIME)
+		VALUES
+		(#{id,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{remark,jdbcType=VARCHAR},
+		#{sort,jdbcType=INTEGER},
+		#{createUser,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP})
+	</insert>
+
+	<!-- 更新数据 -->
+	<update id="update" parameterType="com.couyis.frame.authority.pojo.AuthorityGroup">
+		UPDATE SECURITY_AUTHORITY_GROUP
+		<set>
+			<if test="name != null">
+				NAME = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="remark != null">
+				REMARK = #{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="sort != null">
+				SORT = #{sort,jdbcType=INTEGER},
+			</if>
+			<if test="updateUser != null">
+				UPDATE_USER = #{updateUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+	
+	
+	<select id="findByRoleId" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_AUTHORITY_GROUP A 
+		LEFT JOIN SECURITY_AUTHORITY_GROUP B ON A.PARENT_ID=B.ID
+		LEFT JOIN SECURITY_ROLE_AUTHGRP C ON C.AUTHORITY_GROUP_ID = A.ID		
+		WHERE C.ROLE_ID =
+		#{roleId,jdbcType=VARCHAR}
+	</select>
+</mapper>

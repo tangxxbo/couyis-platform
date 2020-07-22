@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.base.staff.dao.StaffMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.base.staff.pojo.Staff">
+		<!-- 查询与实体类对应关系 -->
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="CODE" jdbcType="VARCHAR" property="code" />
+		<result column="NAME" jdbcType="VARCHAR" property="name" />
+		<result column="STATUS" jdbcType="VARCHAR" property="status" />
+		<result column="ACCOUNT_ID" jdbcType="VARCHAR" property="accountId" />
+		<result column="ACCOUNT" jdbcType="VARCHAR" property="acc" />
+		<result column="ORG_ID" jdbcType="VARCHAR" property="orgId" />
+		<result column="ORG_NAME" jdbcType="VARCHAR" property="orgName" />
+		<result column="POSITION_ID" jdbcType="VARCHAR" property="positionId" />
+		<result column="POSITION_NAME" jdbcType="VARCHAR" property="positionName" />
+		<result column="CREATE_USER" jdbcType="VARCHAR" property="createUser" />
+		<result column="CREATE_TIME" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="UPDATE_USER" jdbcType="VARCHAR" property="updateUser" />
+		<result column="UPDATE_TIME" jdbcType="TIMESTAMP" property="updateTime" />
+	</resultMap>
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		A.ID,A.CODE,A.NAME,A.STATUS,A.ACCOUNT_ID,B.ACCOUNT,A.POSITION_ID,C.NAME
+		POSITION_NAME,A.ORG_ID, D.NAME ORG_NAME
+		,A.CREATE_USER,A.CREATE_TIME,A.UPDATE_USER,A.UPDATE_TIME
+	</sql>
+	<sql id="Page_Execute"><!-- 分页查询 -->
+		LIMIT ${offset},${pageSize}
+	</sql>
+	<sql id="Page_Execute_Head"><!-- 分页查询 -->
+		<![CDATA[ SELECT * FROM (SELECT A.*, ROWNUM RN FROM ( ]]>
+	</sql>
+	
+	<sql id="Page_Execute_Tail"><!-- 分页查询 -->
+		<![CDATA[ ) A WHERE ROWNUM <= ${pageSize}+${offset} )WHERE RN > ${offset}]]>
+	</sql>
+	<sql id="Page_Order_By"><!-- 排序字段 -->
+		<if test="orderField != null and orderDirection != null">
+			ORDER BY ${orderField} ${orderDirection}
+		</if>
+	</sql>
+
+	<!-- 查询记录数 -->
+	<select id="findCount" parameterType="com.couyis.base.staff.bean.StaffBean"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM BASE_STAFF A
+		LEFT JOIN SECURITY_ACCOUNT B ON
+		A.ACCOUNT_ID=B.ID
+		LEFT JOIN BASE_POSITION C ON A.POSITION_ID=C.ID
+		LEFT
+		JOIN BASE_ORG D ON A.ORG_ID=D.ID
+		WHERE 1=1
+		<if test="code != null">
+			AND A.CODE LIKE '%${code}%'
+		</if>
+		<if test="name != null">
+			AND A.NAME LIKE '%${name}%'
+		</if>
+		<if test="status != null and status.size() > 0">
+			AND STATUS IN 
+			<foreach collection="status" item="s" index="index" open="(" close=")" separator=",">
+		      #{s}
+		    </foreach>
+	    </if>
+		<if test="orgName != null">
+			AND D.NAME = '${orgName}'
+		</if>
+		<if test="positionName != null">
+			AND C.NAME = '${positionName}'
+		</if>
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="findPage" parameterType="com.couyis.base.staff.bean.StaffBean"
+		resultMap="BaseResultMap">
+		SELECT		
+		<include refid="Page_Column_List" />
+		FROM BASE_STAFF A
+		LEFT JOIN SECURITY_ACCOUNT B ON A.ACCOUNT_ID=B.ID
+		LEFT JOIN BASE_POSITION C ON A.POSITION_ID=C.ID
+		LEFT JOIN BASE_ORG D ON
+		A.ORG_ID=D.ID
+		WHERE 1=1
+		<if test="code != null">
+			AND A.CODE LIKE '%${code}%'
+		</if>
+		<if test="name != null">
+			AND A.NAME LIKE '%${name}%'
+		</if>
+		<if test="status != null and status.size() > 0">
+			AND STATUS IN 
+			<foreach collection="status" item="s" index="index" open="(" close=")" separator=",">
+		      #{s}
+		    </foreach>
+	    </if>
+		<if test="orgName != null">
+			AND D.NAME = '${orgName}'
+		</if>
+		<if test="positionName != null">
+			AND C.NAME = '${positionName}'
+		</if>
+		<include refid="Page_Order_By" />
+		<include refid="Page_Execute" />
+	</select>
+
+	<!-- 查询所有 -->
+	<select id="findAll" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_STAFF A
+		LEFT JOIN SECURITY_ACCOUNT B ON A.ACCOUNT_ID=B.ID
+		LEFT JOIN BASE_POSITION C ON A.POSITION_ID=C.ID
+		LEFT JOIN BASE_ORG D ON
+		A.ORG_ID=D.ID
+	</select>
+
+	<!-- 获取单条数据 -->
+	<select id="findById" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_STAFF A
+		LEFT JOIN SECURITY_ACCOUNT B ON A.ACCOUNT_ID=B.ID
+		LEFT JOIN BASE_POSITION C ON A.POSITION_ID=C.ID
+		LEFT JOIN BASE_ORG D ON
+		A.ORG_ID=D.ID WHERE A.ID = #{id,jdbcType=VARCHAR}
+	</select>
+	<!-- 帐号获取单条数据 -->
+	<select id="findByCode" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_STAFF A
+		LEFT JOIN SECURITY_ACCOUNT B ON A.ACCOUNT_ID=B.ID
+		LEFT JOIN BASE_POSITION C ON A.POSITION_ID=C.ID
+		LEFT JOIN BASE_ORG D ON
+		A.ORG_ID=D.ID WHERE A.CODE = #{code,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 根据账号 -->
+	<select id="findSearch" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_STAFF A
+		LEFT JOIN SECURITY_ACCOUNT B ON A.ACCOUNT_ID=B.ID
+		LEFT JOIN BASE_POSITION C ON A.POSITION_ID=C.ID
+		LEFT JOIN BASE_ORG D ON
+		A.ORG_ID=D.ID WHERE (A.CODE = '%${name}%' OR A.NAME LIKE '%${name}%' )
+	</select>
+	
+
+	<!-- 删除数据 -->
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		BASE_STAFF
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.base.staff.pojo.Staff">
+		INSERT INTO BASE_STAFF
+		(ID,CODE,
+		NAME,STATUS,ACCOUNT_ID,ORG_ID, POSITION_ID,CREATE_USER,CREATE_TIME)
+		VALUES
+		(#{id,jdbcType=VARCHAR},
+		#{code,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{status,jdbcType=VARCHAR},
+		#{accountId,jdbcType=VARCHAR},
+		#{orgId,jdbcType=VARCHAR},
+		#{positionId,jdbcType=VARCHAR},
+		#{createUser,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP})
+	</insert>
+
+	<!-- 更新数据 -->
+	<update id="update" parameterType="com.couyis.base.staff.pojo.Staff">
+		UPDATE BASE_STAFF
+		<set>
+			<if test="code != null">
+				CODE = #{code,jdbcType=VARCHAR},
+			</if>
+			<if test="name != null">
+				NAME = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="status != null">
+				STATUS = #{status,jdbcType=VARCHAR},
+			</if>
+			<if test="accountId != null">
+				ACCOUNT_ID = #{accountId,jdbcType=VARCHAR},
+			</if>
+			<if test="orgId != null">
+				ORG_ID = #{orgId,jdbcType=VARCHAR},
+			</if>
+			<if test="positionId != null">
+				POSITION_ID = #{positionId,jdbcType=VARCHAR},
+			</if>
+			<if test="updateUser != null">
+				UPDATE_USER = #{updateUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+
+	<!-- 获取单条数据 -->
+	<select id="findByOrgPosition" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT
+		B.ACCOUNT
+		FROM BASE_STAFF A
+		LEFT JOIN SECURITY_ACCOUNT
+		B ON
+		A.ACCOUNT_ID=B.ID
+		LEFT JOIN BASE_POSITION C ON A.POSITION_ID=C.ID
+		LEFT
+		JOIN BASE_ORG D ON
+		A.ORG_ID=D.ID WHERE (A.ORG_ID =
+		#{orgId,jdbcType=VARCHAR} AND
+		A.POSITION_ID =
+		#{positionId,jdbcType=VARCHAR}
+		)OR A.ID IN (SELECT STAFF_ID FROM
+		BASE_PARTTIME WHERE ORG_ID=#{orgId,jdbcType=VARCHAR} AND
+		POSITION_ID=#{positionId,jdbcType=VARCHAR})
+	</select>
+</mapper>

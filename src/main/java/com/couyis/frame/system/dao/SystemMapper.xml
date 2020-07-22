@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.frame.system.dao.SystemMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.frame.system.pojo.System">
+		<!-- 查询与实体类对应关系 -->
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="NAME" jdbcType="VARCHAR" property="name" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="DOMAIN" jdbcType="VARCHAR" property="domain" />
+		<result column="ENABLED" jdbcType="INTEGER" property="enabled" />
+		<result column="CREATE_TIME" jdbcType="DATE" property="createTime" />
+		<result column="CREATE_USER" jdbcType="VARCHAR" property="createUser" />
+		<result column="UPDATE_TIME" jdbcType="DATE" property="updateTime" />
+		<result column="UPDATE_USER" jdbcType="VARCHAR" property="updateUser" />
+		<result column="SECRET" jdbcType="VARCHAR" property="secret" />
+		
+	</resultMap>
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		ID, NAME, REMARK, DOMAIN,ENABLED, CREATE_TIME,CREATE_USER,UPDATE_TIME,UPDATE_USER,SECRET
+	</sql>
+	<sql id="Page_Execute"><!-- 分页查询 -->
+		LIMIT ${offset},${pageSize}
+	</sql>
+	<sql id="Page_Execute_Head"><!-- 分页查询 -->
+		<![CDATA[ SELECT * FROM (SELECT A.*, ROWNUM RN FROM ( ]]>
+	</sql>
+	
+	<sql id="Page_Execute_Tail"><!-- 分页查询 -->
+		<![CDATA[ ) A WHERE ROWNUM <= ${pageSize}+${offset} )WHERE RN > ${offset}]]>
+	</sql>
+	<sql id="Page_Order_By"><!-- 排序字段 -->
+		<if test="orderField != null and orderDirection != null">
+			ORDER BY ${orderField} ${orderDirection}
+		</if>
+	</sql>
+
+	<!-- 查询记录数 -->
+	<select id="findCount" parameterType="com.couyis.frame.system.bean.SystemBean"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM SECURITY_SYSTEM 
+		WHERE 1=1
+		<if test="name != null">
+			AND NAME LIKE '%${name}%'
+		</if>
+		<if test="domain != null and domain != ''">
+			AND DOMAIN LIKE '%${domain}%'
+		</if>
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="findPage" parameterType="com.couyis.frame.system.bean.SystemBean"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_SYSTEM
+		WHERE 1=1
+		<if test="name != null">
+			AND NAME LIKE '%${name}%'
+		</if>
+		<if test="domain != null and domain != ''">
+			AND DOMAIN LIKE '%${domain}%'
+		</if>
+		<include refid="Page_Order_By" />
+		<include refid="Page_Execute" />
+	</select>
+
+	<select id="findSuggest" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_SYSTEM 
+		WHERE 1=1
+		<if test="keyword != null and keyword !=''">
+			AND NAME LIKE '%${keyword}%'
+		</if>
+		<![CDATA[ AND ROWNUM <= 10 ]]>
+	</select>
+
+	<!-- 查询所有 -->
+	<select id="findAll" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_SYSTEM
+	</select>
+
+	<!-- 获取单条数据 -->
+	<select id="findById" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_SYSTEM 
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</select>
+	<!-- 删除数据 -->
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		SECURITY_SYSTEM
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.frame.system.pojo.System">
+		INSERT INTO SECURITY_SYSTEM
+		(ID,
+		NAME, DOMAIN,
+		REMARK, ENABLED,CREATE_TIME,CREATE_USER,UPDATE_TIME,UPDATE_USER,SECRET)
+		VALUES (#{id,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{domain,jdbcType=VARCHAR},
+		#{remark,jdbcType=VARCHAR},
+		#{enabled,jdbcType=INTEGER}, 
+		#{createTime,jdbcType=DATE}, 
+		#{createUser,jdbcType=VARCHAR}, 
+		#{updateTime,jdbcType=DATE}, 
+		#{updateUser,jdbcType=VARCHAR},
+		#{secret,jdbcType=VARCHAR})
+	</insert>
+
+	<!-- 更新数据 -->
+	<update id="update" parameterType="com.couyis.frame.system.pojo.System">
+		UPDATE SECURITY_SYSTEM
+		<set>
+			<if test="name != null">
+				NAME = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="remark != null">
+				REMARK = #{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="domain != null">
+				DOMAIN = #{domain,jdbcType=VARCHAR},
+			</if>
+			<if test="enabled != null">
+				ENABLED = #{enabled,jdbcType=INTEGER},
+			</if>
+			<if test="updateTime != null">
+				UPDATE_TIME = #{updateTime,jdbcType=DATE},
+			</if>
+			<if test="updateUser != null">
+				UPDATE_USER = #{updateUser,jdbcType=VARCHAR},
+			</if>
+			<if test="secret != null">
+				SECRET = #{secret,jdbcType=VARCHAR},
+			</if>
+		</set>
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

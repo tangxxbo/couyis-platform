@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.base.position.dao.PositionMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.base.position.pojo.Position">
+		<!-- 查询与实体类对应关系 -->
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="NAME" jdbcType="VARCHAR" property="name" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="CREATE_USER" jdbcType="VARCHAR" property="createUser" />
+		<result column="CREATE_TIME" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="UPDATE_USER" jdbcType="VARCHAR" property="updateUser" />
+		<result column="UPDATE_TIME" jdbcType="TIMESTAMP" property="updateTime" />
+	</resultMap>
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		ID, NAME, REMARK,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME
+	</sql>
+	<sql id="Page_Execute"><!-- 分页查询 -->
+		LIMIT ${offset},${pageSize}
+	</sql>
+	<sql id="Page_Execute_Head"><!-- ORACLE 分页查询 -->
+		<![CDATA[ SELECT * FROM (SELECT A.*, ROWNUM RN FROM ( ]]>
+	</sql>
+	
+	<sql id="Page_Execute_Tail"><!--  ORACLE 分页查询 -->
+		<![CDATA[ ) A WHERE ROWNUM <= ${pageSize}+${offset} )WHERE RN > ${offset}]]>
+	</sql>
+	<sql id="Page_Order_By"><!-- 排序字段 -->
+		<if test="orderField != null and orderDirection != null">
+			ORDER BY ${orderField} ${orderDirection}
+		</if>
+	</sql>
+
+	<!-- 查询记录数 -->
+	<select id="findCount" parameterType="com.couyis.base.position.bean.PositionBean"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM BASE_POSITION
+		WHERE 1=1
+		<if test="name != null">
+			AND NAME LIKE '%${name}%'
+		</if>
+		<if test="orgId != null">
+			AND ID IN (SELECT POSITION_ID FROM BASE_ORG_POSITION WHERE ORG_ID='${orgId}')
+		</if>
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="findPage" parameterType="com.couyis.base.position.bean.PositionBean"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_POSITION
+		WHERE 1=1
+		<if test="name != null">
+			AND NAME LIKE '%${name}%'
+		</if>		
+		<if test="orgId != null">
+			AND ID IN (SELECT POSITION_ID FROM BASE_ORG_POSITION WHERE ORG_ID='${orgId}')
+		</if>
+		<include refid="Page_Order_By" />
+		<include refid="Page_Execute" />
+	</select>
+
+	<!-- 查询所有 -->
+	<select id="findAll" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_POSITION
+	</select>
+
+	<!-- 获取单条数据 -->
+	<select id="findById" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_POSITION WHERE ID = #{id,jdbcType=VARCHAR}
+	</select>
+	<!-- 删除数据 -->
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		BASE_POSITION
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.base.position.pojo.Position">
+		INSERT INTO BASE_POSITION
+		(ID,
+		NAME, REMARK,CREATE_USER,CREATE_TIME)
+		VALUES (#{id,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{remark,jdbcType=VARCHAR},
+		#{createUser,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP})
+	</insert>
+
+	<!-- 更新数据 -->
+	<update id="update" parameterType="com.couyis.base.position.pojo.Position">
+		UPDATE BASE_POSITION
+		<set>
+			<if test="name != null">
+				NAME = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="remark != null">
+				REMARK = #{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="updateUser != null">
+				UPDATE_USER = #{updateUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+
+
+	<!-- 插入组织与职位 的关联表 -->
+	<insert id="saveOrgPosition">
+		INSERT INTO BASE_ORG_POSITION
+		(ORG_ID,POSITION_ID)
+		VALUES (#{orgId,jdbcType=VARCHAR},
+		#{positionId,jdbcType=VARCHAR})
+	</insert>
+
+	<!-- 删除组织与职位 的关联表数据 -->
+	<delete id="deletePositionByOrgId" parameterType="java.lang.String">
+		DELETE FROM
+		BASE_ORG_POSITION
+		WHERE ORG_ID = #{orgId,jdbcType=VARCHAR}
+	</delete>
+
+	<select id="findByOrgId" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_POSITION WHERE ID IN (SELECT POSITION_ID FROM
+		BASE_ORG_POSITION WHERE ORG_ID = #{orgId,jdbcType=VARCHAR})
+	</select>
+</mapper>

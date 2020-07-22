@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.base.classification.dao.ClassificationAttributeMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.base.classification.pojo.ClassificationAttribute">
+		<!-- 查询与实体类对应关系 -->
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="CLASSIFICATION_ID" jdbcType="VARCHAR" property="classificationId" />
+		<result column="ATTRIBUTE_ID" jdbcType="VARCHAR" property="attributeId" />
+		<result column="DESCRIPTION" jdbcType="VARCHAR" property="description" />
+		<result column="CODE" jdbcType="VARCHAR" property="code" />
+		<result column="NAME" jdbcType="VARCHAR" property="name" />		
+		<result column="DATA_TYPE" jdbcType="VARCHAR" property="dataType" />
+		<result column="CREATE_USER" jdbcType="VARCHAR" property="createUser" />
+		<result column="CREATE_TIME" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="UPDATE_USER" jdbcType="VARCHAR" property="updateUser" />
+		<result column="UPDATE_TIME" jdbcType="TIMESTAMP" property="updateTime" />
+		<result column="DELETE_USER" jdbcType="VARCHAR" property="deleteUser" />
+		<result column="DELETE_TIME" jdbcType="TIMESTAMP" property="deleteTime" />
+		<result column="IS_DELETE" jdbcType="INTEGER" property="isDelete" />	
+	</resultMap>
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		A.ID,A.CLASSIFICATION_ID,A.ATTRIBUTE_ID,B.CODE ,B.NAME, B.DATA_TYPE,A.DESCRIPTION,A.CREATE_USER,A.CREATE_TIME,
+		A.UPDATE_USER,A.UPDATE_TIME,A.DELETE_USER,A.DELETE_TIME,A.IS_DELETE
+	</sql>
+<!-- 获取单条数据 -->
+	<select id="findByClassificationId" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM BASE_CLASSIFICATION_ATTRIBUTE A 
+		LEFT JOIN BASE_ATTRIBUTE B ON A.ATTRIBUTE_ID = B.ID
+		WHERE A.CLASSIFICATION_ID = #{classificationId,jdbcType=VARCHAR}
+	</select>
+	<!-- 删除数据 -->
+	<delete id="deleteByClassificationId" parameterType="java.lang.String">
+		DELETE FROM
+		BASE_CLASSIFICATION_ATTRIBUTE
+		WHERE CLASSIFICATION_ID = #{classificationId,jdbcType=VARCHAR}
+	</delete>
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.base.classification.pojo.ClassificationAttribute">
+		INSERT INTO
+		BASE_CLASSIFICATION_ATTRIBUTE (ID,
+		CLASSIFICATION_ID, ATTRIBUTE_ID, DESCRIPTION,CREATE_USER,CREATE_TIME)
+		VALUES
+		(#{id,jdbcType=VARCHAR},
+		#{classificationId,jdbcType=VARCHAR},
+		#{attributeId,jdbcType=VARCHAR},
+		#{description,jdbcType=VARCHAR},
+		#{createUser,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP})
+	</insert>
+
+	<!-- 更新数据 -->
+	<update id="update" parameterType="com.couyis.base.classification.pojo.ClassificationAttribute">
+		UPDATE SECURITY_AUTHORITY_GROUP
+		<set>
+			<if test="classificationId != null">
+				CLASSIFICATION_ID = #{classificationId,jdbcType=VARCHAR},
+			</if>
+			<if test="attributeId != null">
+				ATTRIBUTE_ID = #{attributeId,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				DESCRIPTION = #{description,jdbcType=INTEGER},
+			</if>
+			<if test="updateUser != null">
+				UPDATE_USER = #{updateUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="deleteUser != null">
+				DELETE_USER = #{deleteUser,jdbcType=VARCHAR},
+			</if>
+			<if test="deleteTime != null">
+				DELETE_TIME = #{deleteTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="isDelete != null">
+				IS_DELETE = #{isDelete,jdbcType=INTEGER},
+			</if>
+		</set>
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.couyis.frame.log.dao.AccessLogMapper">
+	<resultMap id="BaseResultMap" type="com.couyis.frame.log.pojo.AccessLog">
+		<!-- 查询与实体类对应关系 -->
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="URL" jdbcType="VARCHAR" property="url" />
+		<result column="GET_PARA" jdbcType="VARCHAR" property="getPara" />
+		<result column="POST_PARA" jdbcType="VARCHAR" property="postPara" />
+		<result column="IP_ADDRESS" jdbcType="VARCHAR" property="ipAddress" />
+		<result column="CREATE_USER" jdbcType="VARCHAR" property="createUser" />
+		<result column="CREATE_TIME" jdbcType="TIMESTAMP" property="createTime" />
+	</resultMap>
+	<sql id="Page_Column_List"><!-- 查询的字段 -->
+		ID, URL, GET_PARA, POST_PARA, IP_ADDRESS,CREATE_USER,CREATE_TIME
+	</sql>
+	<sql id="Page_Execute"><!-- 分页查询 -->
+		LIMIT ${offset},${pageSize}
+	</sql>
+	<sql id="Page_Execute_Head"><!-- 分页查询 -->
+		<![CDATA[ SELECT * FROM (SELECT A.*, ROWNUM RN FROM ( ]]>
+	</sql>
+	
+	<sql id="Page_Execute_Tail"><!-- 分页查询 -->
+		<![CDATA[ ) A WHERE ROWNUM <= ${pageSize}+${offset} )WHERE RN > ${offset}]]>
+	</sql>
+	<sql id="Page_Order_By"><!-- 排序字段 -->
+		<if test="orderField != null and orderDirection != null">
+			ORDER BY ${orderField} ${orderDirection}
+		</if>
+	</sql>
+
+	<!-- 查询记录数 -->
+	<select id="findCount" parameterType="com.couyis.frame.log.bean.AccessLogBean"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM SECURITY_ACCESS_LOG 
+		WHERE 1=1
+		<if test="url != null">
+			AND URL LIKE '%${url}%'
+		</if>
+		<if test="ipAddress != null">
+			AND IP_ADDRESS LIKE '%${ipAddress}%'
+		</if>
+		<if test="createUser != null">
+			AND CREATE_USER LIKE '%${createUser}%'
+		</if>
+		<if test="startTime != null and endTime != null">
+			AND CREATE_TIME BETWEEN #{startTime} and #{endTime}
+	    </if>
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="findPage" parameterType="com.couyis.frame.log.bean.AccessLogBean"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_ACCESS_LOG
+		WHERE 1=1
+		<if test="url != null">
+			AND URL LIKE '%${url}%'
+		</if>
+		<if test="ipAddress != null">
+			AND IP_ADDRESS LIKE '%${ipAddress}%'
+		</if>
+		<if test="createUser != null">
+			AND CREATE_USER LIKE '%${createUser}%'
+		</if>
+		<if test="startTime != null and endTime != null">
+			AND CREATE_TIME BETWEEN #{startTime} and #{endTime}
+	    </if>
+		<include refid="Page_Order_By" />
+		<include refid="Page_Execute" />
+	</select>
+
+	<!-- 获取单条数据 -->
+	<select id="findById" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Page_Column_List" />
+		FROM SECURITY_ACCESS_LOG 
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</select>
+	<!-- 删除数据 -->
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		SECURITY_RESOURCE 
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+	<!-- 插入数据 -->
+	<insert id="save" parameterType="com.couyis.frame.log.pojo.AccessLog">
+		INSERT INTO SECURITY_ACCESS_LOG
+		(ID,
+		URL, GET_PARA,
+		POST_PARA, IP_ADDRESS,CREATE_USER,CREATE_TIME)
+		VALUES (#{id,jdbcType=VARCHAR},
+		#{url,jdbcType=VARCHAR},
+		#{getPara,jdbcType=VARCHAR},
+		#{postPara,jdbcType=VARCHAR}, 
+		#{ipAddress,jdbcType=VARCHAR},
+		#{createUser,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP})
+	</insert>
+</mapper>
