@@ -10,7 +10,7 @@ import com.couyis.frame.role.pojo.Role;
 /**
  * 对应菜单表数据
  * 
- * @author 邓放平
+ * 
  *
  */
 public class Account {
