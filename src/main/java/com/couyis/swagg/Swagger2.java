@@ -29,7 +29,7 @@ public class Swagger2 implements WebMvcConfigurer  {
 	private ApiInfo apiInfo() {
 		return new ApiInfoBuilder()
 				.title("Spring Boot中使用Swagger2构建RESTful APIs")
-				.description("原文地址链接：http://blog.didispace.com/springbootswagger2/")
+				.description("RestFul接口API：http://blog.didispace.com/springbootswagger2/")
 				.termsOfServiceUrl("www.baidu.com")
 				.contact("@唐晓旭")
 				.version("1.0")
